@@ -1,0 +1,4 @@
+= Time-based UUID reordering
+
+A utility to reorder the timestamp bits in an https://tools.ietf.org/html/rfc4122#section-4.1.2[RFC 4122 version 1 (time-based UUID)]
+from the standard middle-endian to sort-friendly big-endian.

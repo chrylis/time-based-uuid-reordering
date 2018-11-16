@@ -1,0 +1,9 @@
+target/
+
+.classpath
+.metadata
+.project
+.settings/
+.sts4-cache/
+
+.attach_pid*
