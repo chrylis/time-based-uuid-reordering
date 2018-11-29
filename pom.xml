@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.chrylis.lib</groupId>
     <artifactId>time-based-uuid-reordering</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 
     <name>Time-based UUID reordering</name>
     <description>A small utility library to reorder the time fields in a time-based UUID
@@ -40,7 +40,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>1.7</java.version>
+        <java.version>1.8</java.version>
     </properties>
 
     <build>

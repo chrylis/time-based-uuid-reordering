@@ -1,5 +1,6 @@
 package com.chrylis.lib.time_based_uuid_reordering;
 
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -65,6 +66,17 @@ public final class TimeBasedUuidReordering {
     }
 
     private static final long VERSION_ONE = 0x0000_0000_0000_1000L;
+
+    private static final long VARIANT_RFC_4122 = 0x8000_0000_0000_0000L;
+
+    private static final long SECOND_TO_100NANOS = 10_000_000L;
+
+    private static final long EPOCH_GREGORIAN_TO_UNIX = 12219292800L;
+
+    /**
+     * When the UUID timestamp field will roll over: {@code 5236-03-31T21:21:00Z}
+     */
+    static final Instant UUID_TIMESTAMP_ROLLOVER = Instant.ofEpochSecond(103072857660L, 684697500);
 
     private static void checkVersion(UUID input) {
         if (!(input.version() == 1)) {
@@ -144,4 +156,36 @@ public final class TimeBasedUuidReordering {
      * long loTime = (oldLow & 0x0000_ffff_ffff_0000L) >>> 16; // 32 bits
      * long counter = (oldLow & 0x0000_0000_0000_ffffL); // 16 bits
      */
+
+    /**
+     * Returns the UUID that represents the smallest possible numeric value for the given time.
+     * The time information from the {@code Instant} is packed into the timestamp bits of the UUID
+     * and all other variable bits are set to zero.
+     *
+     * As the node ID should never be zero and the clock sequence is implicitly zero, the resulting
+     * value should never match any UUID generated with real-world parameters and is safe as an
+     * inclusive or exclusive bound.
+     *
+     * @param when
+     *            the timestamp for which to produce a bound
+     * @return a UUID representing the lowest possible numeric value for the given time
+     */
+    public static UUID lowestBound(Instant when) {
+        if(when.isAfter(UUID_TIMESTAMP_ROLLOVER)) {
+            throw new IllegalArgumentException("the provided timestamp " + when + " overflows the 60-bit UUID timestamp");
+        }
+
+        // high 4 bits will be ignored
+        long timestamp = ((when.getEpochSecond() + EPOCH_GREGORIAN_TO_UNIX) * SECOND_TO_100NANOS)
+                + (when.getNano() / 100);
+
+        long aboveVersion = timestamp & 0x0fff_ffff_ffff_f000L;
+        long belowVersion = timestamp & 0x0000_0000_0000_0fffL;
+
+        long hi = aboveVersion << 4
+                | VERSION_ONE
+                | belowVersion;
+
+        return new UUID(hi, VARIANT_RFC_4122);
+    }
 }

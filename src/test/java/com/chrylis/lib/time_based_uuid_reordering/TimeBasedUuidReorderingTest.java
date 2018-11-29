@@ -1,8 +1,14 @@
 package com.chrylis.lib.time_based_uuid_reordering;
 
+import static com.chrylis.lib.time_based_uuid_reordering.TimeBasedUuidReordering.UUID_TIMESTAMP_ROLLOVER;
+import static com.chrylis.lib.time_based_uuid_reordering.TimeBasedUuidReordering.bigEndianToRfc;
+import static com.chrylis.lib.time_based_uuid_reordering.TimeBasedUuidReordering.lowestBound;
+import static com.chrylis.lib.time_based_uuid_reordering.TimeBasedUuidReordering.rfcToBigEndian;
+import static java.time.temporal.ChronoUnit.NANOS;
 import static java.util.UUID.fromString;
 import static org.junit.Assert.assertEquals;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import org.junit.Test;
@@ -14,9 +20,9 @@ public class TimeBasedUuidReorderingTest {
         for (String[] pair : TEST_PAIRS) {
             UUID rfc = fromString(pair[0]);
             UUID expected = fromString(pair[1]);
-            UUID reordered = TimeBasedUuidReordering.rfcToBigEndian(rfc);
+            UUID reordered = rfcToBigEndian(rfc);
             assertEquals(expected, reordered);
-            assertEquals(rfc, TimeBasedUuidReordering.bigEndianToRfc(reordered));
+            assertEquals(rfc, bigEndianToRfc(reordered));
         }
     }
 
@@ -39,4 +45,24 @@ public class TimeBasedUuidReorderingTest {
           + "-9f32-f2801f1b9fd1" },
         // @formatter:on
     };
+
+    @Test
+    public void lowestBoundAcceptsHighestValue() {
+        UUID bigTimestamp = UUID.fromString("ffffffff-ffff-1fff-8000-000000000000");
+        assertEquals(bigTimestamp, lowestBound(UUID_TIMESTAMP_ROLLOVER));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void lowestBoundRejectsBigInstants() {
+        Instant overflow = UUID_TIMESTAMP_ROLLOVER.plus(100, NANOS);
+        lowestBound(overflow);
+    }
+
+    @Test
+    public void lowestBoundCalculatesCorrectly() {
+        // timestamp taken at development time, correct answer worked out
+        Instant timestamp = Instant.ofEpochSecond(1543470108);
+        UUID lb = lowestBound(timestamp);
+        assertEquals(UUID.fromString("1e8f3997-697b-1600-8000-000000000000"), lb);
+    }
 }
