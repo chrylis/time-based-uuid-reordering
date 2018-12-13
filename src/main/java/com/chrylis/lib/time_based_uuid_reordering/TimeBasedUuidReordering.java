@@ -168,10 +168,10 @@ public final class TimeBasedUuidReordering {
      *
      * @param when
      *            the timestamp for which to produce a bound
-     * @return a UUID representing the lowest possible numeric value for the given time
+     * @return a UUID representing the lowest possible numeric value for the given time in big-endian format
      */
     public static UUID lowestBound(Instant when) {
-        if(when.isAfter(UUID_TIMESTAMP_ROLLOVER)) {
+        if (when.isAfter(UUID_TIMESTAMP_ROLLOVER)) {
             throw new IllegalArgumentException("the provided timestamp " + when + " overflows the 60-bit UUID timestamp");
         }
 
@@ -187,5 +187,49 @@ public final class TimeBasedUuidReordering {
                 | belowVersion;
 
         return new UUID(hi, VARIANT_RFC_4122);
+    }
+
+    /**
+     * Returns the timestamp of <b>an RFC-formatted version 1 UUID</b> as an {@code Instant}.
+     *
+     * @param uuid
+     *            an RFC-formatted version 1 UUID
+     * @return the timestamp converted to an {@code Instant}
+     * @throws UnsupportedOperationException
+     *             if the UUID is not a version 1 UUID
+     */
+    public static Instant rfcUuidToInstant(UUID uuid) {
+        long timestamp = uuid.timestamp();
+        return timestampToInstant(timestamp);
+    }
+
+    /**
+     * Returns the timestamp of <b>a big-endian version 1 UUID</b> as an {@code Instant}.
+     *
+     * @param uuid
+     *            a big-endian version 1 UUID
+     * @return the timestamp converted to an {@code Instant}
+     * @throws UnsupportedOperationException
+     *             if the UUID is not a version 1 UUID
+     */
+    public static Instant bigEndianToInstant(UUID uuid) {
+        // see UUID#timestamp()
+        if(uuid.version() != 1) {
+            throw new UnsupportedOperationException("Not a time-based UUID");
+        }
+
+        long hi = uuid.getMostSignificantBits();
+        long timestamp =
+                  (hi & 0xffff_ffff_ffff_0000L) >> 4 // trim version field and shift top part down
+                | (hi & 0x0000_0000_0000_0fffL);
+        return timestampToInstant(timestamp);
+    }
+
+    private static Instant timestampToInstant(long timestamp) {
+        long hundredsNanos = timestamp % SECOND_TO_100NANOS;
+        long gregorianSeconds = timestamp / SECOND_TO_100NANOS;
+        long unixSeconds = gregorianSeconds - EPOCH_GREGORIAN_TO_UNIX;
+
+        return Instant.ofEpochSecond(unixSeconds, hundredsNanos * 100);
     }
 }

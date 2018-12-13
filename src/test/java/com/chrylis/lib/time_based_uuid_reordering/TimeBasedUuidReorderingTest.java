@@ -1,9 +1,11 @@
 package com.chrylis.lib.time_based_uuid_reordering;
 
 import static com.chrylis.lib.time_based_uuid_reordering.TimeBasedUuidReordering.UUID_TIMESTAMP_ROLLOVER;
+import static com.chrylis.lib.time_based_uuid_reordering.TimeBasedUuidReordering.bigEndianToInstant;
 import static com.chrylis.lib.time_based_uuid_reordering.TimeBasedUuidReordering.bigEndianToRfc;
 import static com.chrylis.lib.time_based_uuid_reordering.TimeBasedUuidReordering.lowestBound;
 import static com.chrylis.lib.time_based_uuid_reordering.TimeBasedUuidReordering.rfcToBigEndian;
+import static com.chrylis.lib.time_based_uuid_reordering.TimeBasedUuidReordering.rfcUuidToInstant;
 import static java.time.temporal.ChronoUnit.NANOS;
 import static java.util.UUID.fromString;
 import static org.junit.Assert.assertEquals;
@@ -26,6 +28,7 @@ public class TimeBasedUuidReorderingTest {
         }
     }
 
+    // formatted in {RFC, big-endian}
     private static final String TEST_PAIRS[][] = {
         // @formatter:off
         { "0d0b40f8-e965-11e8-88b6-ac7ba1c62b04",
@@ -65,4 +68,22 @@ public class TimeBasedUuidReorderingTest {
         UUID lb = lowestBound(timestamp);
         assertEquals(UUID.fromString("1e8f3997-697b-1600-8000-000000000000"), lb);
     }
+
+    @Test
+    public void rfcUuidToInstantCalculatesCorrectly() {
+        // timestamp taken at development time, correct answer worked out
+        UUID rfc = fromString("c00a8592-fe7f-11e8-8eb2-f2801f1b9fd1");
+        Instant timestamp = Instant.ofEpochSecond(1544668527, 1016850_00);
+        assertEquals(timestamp, rfcUuidToInstant(rfc));
+    }
+
+    @Test
+    public void bigEndianToInstantCalculatesCorrectly() {
+        // timestamp taken at development time, correct answer worked out
+        UUID rfc = fromString("c00a8592-fe7f-11e8-8eb2-f2801f1b9fd1");
+        UUID bigEndian = rfcToBigEndian(rfc);
+        Instant timestamp = Instant.ofEpochSecond(1544668527, 1016850_00);
+        assertEquals(timestamp, bigEndianToInstant(bigEndian));
+    }
+
 }
