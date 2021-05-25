@@ -8,12 +8,17 @@ import static com.chrylis.lib.time_based_uuid_reordering.TimeBasedUuidReordering
 import static com.chrylis.lib.time_based_uuid_reordering.TimeBasedUuidReordering.rfcUuidToInstant;
 import static java.time.temporal.ChronoUnit.NANOS;
 import static java.util.UUID.fromString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.Assert.assertEquals;
 
 import java.time.Instant;
 import java.util.UUID;
 
 import org.junit.Test;
+
+import com.github.f4b6a3.uuid.UuidCreator;
 
 public class TimeBasedUuidReorderingTest {
 
@@ -86,4 +91,20 @@ public class TimeBasedUuidReorderingTest {
         assertEquals(timestamp, bigEndianToInstant(bigEndian));
     }
 
+
+    @Test
+    public void interoperabilityWithVersion6() throws InterruptedException {
+        // Insert sleeps because the precision of the representation can be lower than the system clock.
+        Instant start = Instant.now();
+        Thread.sleep(1);
+        UUID v6 = UuidCreator.getTimeOrdered();
+        Thread.sleep(1);
+        Instant end = Instant.now();
+
+        Instant timestamp = bigEndianToInstant(v6);
+
+        assertEquals(6, v6.version());
+        assertThat(timestamp, greaterThanOrEqualTo(start));
+        assertThat(timestamp, lessThanOrEqualTo(end));
+    }
 }

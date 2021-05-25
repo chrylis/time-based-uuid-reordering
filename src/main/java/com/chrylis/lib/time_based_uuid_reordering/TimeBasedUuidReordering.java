@@ -204,17 +204,18 @@ public final class TimeBasedUuidReordering {
     }
 
     /**
-     * Returns the timestamp of <b>a big-endian version 1 UUID</b> as an {@code Instant}.
+     * Returns the timestamp of a big-endian version 1 UUID or a version 6 UUID as an {@code Instant}.
      *
      * @param uuid
-     *            a big-endian version 1 UUID
+     *            a big-endian version 1 UUID or a version 6 UUID
      * @return the timestamp converted to an {@code Instant}
      * @throws UnsupportedOperationException
-     *             if the UUID is not a version 1 UUID
+     *             if the UUID is not a version 1 or 6 UUID
      */
     public static Instant bigEndianToInstant(UUID uuid) {
         // see UUID#timestamp()
-        if(uuid.version() != 1) {
+        int version = uuid.version();
+        if (version != 1 && version != 6) {
             throw new UnsupportedOperationException("Not a time-based UUID");
         }
 
