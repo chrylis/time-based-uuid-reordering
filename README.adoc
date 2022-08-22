@@ -4,5 +4,5 @@ A utility to reorder the timestamp bits in an https://tools.ietf.org/html/rfc412
 from the standard middle-endian to sort-friendly big-endian.
 
 From version 1.2.0, this library has basic interoperability with the proposed
-https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format-01#section-4.1[version 6],
+https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format-04#section-5.1[version 6],
 which has an identical packing for and semantics for the timestamp fields.
